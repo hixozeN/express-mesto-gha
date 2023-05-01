@@ -36,7 +36,7 @@ deleteCard = (req, res) => {
         res
           .status(404)
           .send(
-            { message: `Карточка с ID: ${req.params.cardId} не найдена и не была удалена.` }
+            { message: `Передан несуществующий ID карточки: ${req.params.cardId}.` }
           );
       }
     })
@@ -59,7 +59,7 @@ likeCard = (req, res) => {
       if (card) {
         res.status(200).send({ data: card });
       } else {
-        res.status(404).send({ message: `Карточка с ID ${req.params.cardId} не найдена`});
+        res.status(404).send({ message: `Передан несуществующий ID карточки: ${req.params.cardId}.`});
       }
     })
     .catch((err) => {
@@ -81,7 +81,7 @@ dislikeCard = (req, res) => {
       if (card) {
         res.status(200).send({ data: card });
       } else {
-        res.status(404).send({ message: `Карточка с ID ${req.params.cardId} не найдена`});
+        res.status(404).send({ message: `Передан несуществующий ID карточки: ${req.params.cardId}.`});
       }
     })
     .catch((err) => {
