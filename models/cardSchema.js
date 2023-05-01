@@ -1,4 +1,5 @@
-const { Schema, model } = require("mongoose");
+/* eslint-disable import/no-extraneous-dependencies */
+const { Schema, model } = require('mongoose');
 
 const cardSchema = new Schema(
   {
@@ -15,13 +16,13 @@ const cardSchema = new Schema(
     owner: {
       type: Schema.Types.ObjectId,
       required: true,
-      ref: "user",
+      ref: 'user',
     },
     likes: [
       {
         type: Schema.Types.ObjectId,
         default: [],
-        ref: "user",
+        ref: 'user',
       },
     ],
     createdAt: {
@@ -31,7 +32,7 @@ const cardSchema = new Schema(
   },
   {
     versionKey: false,
-  }
+  },
 );
 
-module.exports = model("card", cardSchema);
+module.exports = model('card', cardSchema);
