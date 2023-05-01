@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 const cardRouter = require('express').Router();
 const {
   getAllCards,

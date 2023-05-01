@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 const userRouter = require('express').Router();
 const {
   getAllUsers,

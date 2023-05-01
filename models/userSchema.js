@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 const { Schema, model } = require('mongoose');
 
 const userSchema = new Schema(
