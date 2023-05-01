@@ -3,7 +3,7 @@ const Card = require("../models/cardSchema");
 getAllCards = (req, res) => {
   Card.find({})
     .then((cards) => res.status(200).send({ data: cards }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => res.status(400).send({ message: err.message }));
 };
 
 createCard = (req, res) => {
@@ -11,7 +11,7 @@ createCard = (req, res) => {
 
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.status(201).send({ data: card }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => res.status(400).send({ message: err.message }));
 };
 
 deleteCard = (req, res) => {
@@ -27,7 +27,7 @@ deleteCard = (req, res) => {
           );
       }
     })
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => res.status(400).send({ message: err.message }));
 };
 
 likeCard = (req, res) => {
@@ -43,7 +43,7 @@ likeCard = (req, res) => {
         res.status(404).send(`Карточка с ID ${req.params.cardId} не найдена`);
       }
     })
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => res.status(400).send({ message: err.message }));
 };
 
 dislikeCard = (req, res) => {
@@ -59,7 +59,7 @@ dislikeCard = (req, res) => {
         res.status(404).send(`Карточка с ID ${req.params.cardId} не найдена`);
       }
     })
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => res.status(400).send({ message: err.message }));
 };
 
 module.exports = { getAllCards, createCard, deleteCard, likeCard, dislikeCard };
