@@ -6,13 +6,7 @@ const User = require('../models/userSchema');
 const getAllUsers = (req, res) => {
   User.find({})
     .then((users) => res.status(200).send({ data: users }))
-    .catch((err) => {
-      if (err instanceof CastError) {
-        res.status(400).send({ message: err.message });
-      } else {
-        res.status(500).send({ message: `Что-то пошло не так: ${err}` });
-      }
-    });
+    .catch((err) => res.status(500).send({ message: `Что-то пошло не так: ${err}` }));
 };
 
 const getUser = (req, res) => {

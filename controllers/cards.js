@@ -6,13 +6,7 @@ const Card = require('../models/cardSchema');
 const getAllCards = (req, res) => {
   Card.find({})
     .then((cards) => res.status(200).send({ data: cards }))
-    .catch((err) => {
-      if (err instanceof CastError) {
-        res.status(400).send({ message: err.message });
-      } else {
-        res.status(500).send({ message: `Что-то пошло не так: ${err}` });
-      }
-    });
+    .catch((err) => res.status(500).send({ message: `Что-то пошло не так: ${err}` }));
 };
 
 const createCard = (req, res) => {
