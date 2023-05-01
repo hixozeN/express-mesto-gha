@@ -12,7 +12,7 @@ getUser = (req, res) => {
       if (userData) {
         res.status(200).send({ data: userData })
       } else {
-        res.status(404).send(`Пользователь с таким ID не найден.`)
+        res.status(404).send({ message: 'Пользователь с таким ID не найден.'})
       }
     })
     .catch((err) => res.status(400).send({ message: err.message }));

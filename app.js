@@ -19,5 +19,8 @@ app.use((req, res, next) => {
 
 app.use('/users', require('./routes/userRouter'));
 app.use('/cards', require('./routes/cardRouter'));
+app.use('*', (req, res) => {
+  res.status(404).send({ message: "Указанный путь не найден."})
+})
 
 app.listen(PORT, () => console.log('Server started on port:', PORT));

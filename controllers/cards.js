@@ -23,7 +23,7 @@ deleteCard = (req, res) => {
         res
           .status(404)
           .send(
-            `Карточка с ID: ${req.params.cardId} не найдена и не была удалена.`
+            { message: `Карточка с ID: ${req.params.cardId} не найдена и не была удалена.` }
           );
       }
     })
@@ -40,7 +40,7 @@ likeCard = (req, res) => {
       if (card) {
         res.status(200).send({ data: card });
       } else {
-        res.status(404).send(`Карточка с ID ${req.params.cardId} не найдена`);
+        res.status(404).send({ message: `Карточка с ID ${req.params.cardId} не найдена`});
       }
     })
     .catch((err) => res.status(400).send({ message: err.message }));
@@ -56,7 +56,7 @@ dislikeCard = (req, res) => {
       if (card) {
         res.status(200).send({ data: card });
       } else {
-        res.status(404).send(`Карточка с ID ${req.params.cardId} не найдена`);
+        res.status(404).send({ message: `Карточка с ID ${req.params.cardId} не найдена`});
       }
     })
     .catch((err) => res.status(400).send({ message: err.message }));
