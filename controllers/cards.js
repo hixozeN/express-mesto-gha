@@ -5,7 +5,7 @@ const Card = require('../models/cardSchema');
 
 const getAllCards = (req, res) => {
   Card.find({})
-    .then((cards) => res.status(200).send({ data: cards }))
+    .then((cards) => res.send({ data: cards }))
     .catch((err) => res.status(500).send({ message: `Что-то пошло не так: ${err}` }));
 };
 
@@ -25,20 +25,13 @@ const createCard = (req, res) => {
 
 const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .then((card) => {
-      if (card) {
-        res.status(200).send({ data: card });
-      } else {
-        res
-          .status(404)
-          .send(
-            { message: `Передан несуществующий ID карточки: ${req.params.cardId}.` },
-          );
-      }
-    })
+    .orFail(new Error('NotValidId'))
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err instanceof CastError) {
         res.status(400).send({ message: `Введен некорректный ID (${req.params.cardId}), который невозможно обработать.` });
+      } else if (err.message === 'NotValidId') {
+        res.status(404).send({ message: `Передан несуществующий ID карточки: ${req.params.cardId}.` });
       } else {
         res.status(500).send({ message: `Что-то пошло не так: ${err}` });
       }
@@ -51,16 +44,13 @@ const likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => {
-      if (card) {
-        res.status(200).send({ data: card });
-      } else {
-        res.status(404).send({ message: `Передан несуществующий ID карточки: ${req.params.cardId}.` });
-      }
-    })
+    .orFail(new Error('NotValidId'))
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err instanceof CastError) {
         res.status(400).send({ message: err.message });
+      } else if (err.message === 'NotValidId') {
+        res.status(404).send({ message: `Передан несуществующий ID карточки: ${req.params.cardId}.` });
       } else {
         res.status(500).send({ message: `Что-то пошло не так: ${err}` });
       }
@@ -73,16 +63,13 @@ const dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => {
-      if (card) {
-        res.status(200).send({ data: card });
-      } else {
-        res.status(404).send({ message: `Передан несуществующий ID карточки: ${req.params.cardId}.` });
-      }
-    })
+    .orFail(new Error('NotValidId'))
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err instanceof CastError) {
         res.status(400).send({ message: err.message });
+      } else if (err.message === 'NotValidId') {
+        res.status(404).send({ message: `Передан несуществующий ID карточки: ${req.params.cardId}.` });
       } else {
         res.status(500).send({ message: `Что-то пошло не так: ${err}` });
       }
