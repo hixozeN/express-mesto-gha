@@ -2,13 +2,19 @@ const express = require('express');
 const mongoose = require('mongoose');
 
 const app = express();
-const { PORT = 3000 } = process.env;
-const mongoDB = 'mongodb://127.0.0.1:27017/mestodb';
 const rateLimit = require('express-rate-limit'); // limiter
 const helmet = require('helmet'); // https://expressjs.com/ru/advanced/best-practice-security.html
+const { PORT, MONGO_DB } = require('./utils/config');
+const { login, createUser } = require('./controllers/users');
+const authMiddleware = require('./middlewares/auth');
+const responseHandler = require('./middlewares/responseHandler');
 
 mongoose.set('strictQuery', false);
-mongoose.connect(mongoDB);
+mongoose.connect(MONGO_DB, {
+  useUnifiedTopology: true,
+  useNewUrlParser: true,
+  autoIndex: true, // make this also true
+});
 
 app.use(express.json());
 
@@ -22,20 +28,16 @@ const limiter = rateLimit({
 app.use(limiter); // AntiDOS на все реквесты
 app.use(helmet());
 
-// Заглушка авторизации
-app.use((req, res, next) => {
-  req.user = {
-    _id: '644f77ee721660af4f5b8faa',
-  };
+app.use('/users', authMiddleware, require('./routes/userRouter'));
+app.use('/cards', authMiddleware, require('./routes/cardRouter'));
 
-  next();
-});
-
-app.use('/users', require('./routes/userRouter'));
-app.use('/cards', require('./routes/cardRouter'));
+app.use('/signin', login);
+app.use('/signup', createUser);
 
 app.use('*', (req, res) => {
   res.status(404).send({ message: 'Указанный путь не найден.' });
 });
+
+app.use(responseHandler);
 
 app.listen(PORT, () => console.log('Server started on port:', PORT));

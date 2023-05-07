@@ -2,43 +2,51 @@ const mongoose = require('mongoose');
 
 const { ValidationError, CastError } = mongoose.Error;
 const Card = require('../models/cardSchema');
+const BadRequest = require('../utils/responsesWithError/BadRequest');
+const NotFound = require('../utils/responsesWithError/NotFound');
+const Forbidden = require('../utils/responsesWithError/Forbidden');
 
-const getAllCards = (req, res) => {
+const getAllCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.send({ data: cards }))
-    .catch((err) => res.status(500).send({ message: `Что-то пошло не так: ${err}` }));
+    .catch((err) => next(err));
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        res.status(400).send({ message: err.message });
+        next(new BadRequest(err.message));
       } else {
-        res.status(500).send({ message: `Что-то пошло не так: ${err}` });
+        next(err);
       }
     });
 };
 
-const deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+const deleteCard = (req, res, next) => {
+  Card.findById(req.params.cardId)
     .orFail(new Error('NotValidId'))
-    .then((card) => res.send({ data: card }))
+    .then((foundCard) => {
+      if (!foundCard.owner.equals(req.user._id)) return next(new Forbidden('Эта карточка принадлежит другому пользователю.'));
+
+      return Card.findByIdAndRemove(req.params.cardId)
+        .then((card) => res.send({ data: card }));
+    })
     .catch((err) => {
       if (err instanceof CastError) {
-        res.status(400).send({ message: `Введен некорректный ID (${req.params.cardId}), который невозможно обработать.` });
+        next(new BadRequest('Введен некорректный ID, который невозможно обработать.'));
       } else if (err.message === 'NotValidId') {
-        res.status(404).send({ message: `Передан несуществующий ID карточки: ${req.params.cardId}.` });
+        next(new NotFound('Передан несуществующий ID карточки.'));
       } else {
-        res.status(500).send({ message: `Что-то пошло не так: ${err}` });
+        next(err);
       }
     });
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -48,16 +56,16 @@ const likeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err instanceof CastError) {
-        res.status(400).send({ message: err.message });
+        next(new BadRequest('Переданы некорректные данные при лайке.'));
       } else if (err.message === 'NotValidId') {
-        res.status(404).send({ message: `Передан несуществующий ID карточки: ${req.params.cardId}.` });
+        next(new NotFound('Передан несуществующий ID карточки.'));
       } else {
-        res.status(500).send({ message: `Что-то пошло не так: ${err}` });
+        next(err);
       }
     });
 };
 
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -67,15 +75,19 @@ const dislikeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err instanceof CastError) {
-        res.status(400).send({ message: err.message });
+        next(new BadRequest('Переданы некорректные данные при дизлайке.'));
       } else if (err.message === 'NotValidId') {
-        res.status(404).send({ message: `Передан несуществующий ID карточки: ${req.params.cardId}.` });
+        next(new NotFound('Передан несуществующий ID карточки.'));
       } else {
-        res.status(500).send({ message: `Что-то пошло не так: ${err}` });
+        next(err);
       }
     });
 };
 
 module.exports = {
-  getAllCards, createCard, deleteCard, likeCard, dislikeCard,
+  getAllCards,
+  createCard,
+  deleteCard,
+  likeCard,
+  dislikeCard,
 };
