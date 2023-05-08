@@ -7,6 +7,7 @@ const { ValidationError, CastError } = mongoose.Error;
 const User = require('../models/userSchema');
 const BadRequest = require('../utils/responsesWithError/BadRequest');
 const NotFound = require('../utils/responsesWithError/NotFound');
+const Duplicate = require('../utils/responsesWithError/Duplicate');
 
 const getAllUsers = (req, res, next) => {
   User.find({})
@@ -59,6 +60,8 @@ const createUser = (req, res, next) => {
     .catch((err) => {
       if (err instanceof ValidationError) {
         next(new BadRequest(err.message));
+      } else if (err.code === 11000) {
+        next(new Duplicate('Пользователь с таким email уже зарегистрирован.'));
       } else {
         next(err);
       }
