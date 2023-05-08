@@ -32,8 +32,8 @@ const validateRegistration = celebrate({
   body: Joi.object().keys({
     email: Joi.string().min(7).required().email(),
     password: Joi.string().required(),
-    name: Joi.string().min(2).max(30).required(),
-    about: Joi.string().min(2).max(30).required(),
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
     avatar: Joi.string().pattern(regexp),
   }),
 });
