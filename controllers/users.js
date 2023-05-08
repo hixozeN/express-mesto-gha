@@ -50,7 +50,9 @@ const createUser = (req, res, next) => {
     name, about, avatar, email, password,
   } = req.body;
 
-  bcrypt.hash(password, 10)
+  if (!password) return next(new BadRequest('Поле "password" должно быть заполнено.'));
+
+  return bcrypt.hash(password, 10)
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))

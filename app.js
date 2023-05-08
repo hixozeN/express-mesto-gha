@@ -9,6 +9,7 @@ const { PORT, MONGO_DB } = require('./utils/config');
 const { login, createUser } = require('./controllers/users');
 const authMiddleware = require('./middlewares/auth');
 const responseHandler = require('./middlewares/responseHandler');
+const { validateLogin, validateRegistration } = require('./utils/validationConfig');
 
 mongoose.set('strictQuery', false);
 mongoose.connect(MONGO_DB, {
@@ -32,8 +33,8 @@ app.use(helmet());
 app.use('/users', authMiddleware, require('./routes/userRouter'));
 app.use('/cards', authMiddleware, require('./routes/cardRouter'));
 
-app.use('/signin', login);
-app.use('/signup', createUser);
+app.use('/signin', validateLogin, login);
+app.use('/signup', validateRegistration, createUser);
 
 app.use('*', (req, res) => {
   res.status(404).send({ message: 'Указанный путь не найден.' });
