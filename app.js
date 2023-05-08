@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const app = express();
 const rateLimit = require('express-rate-limit'); // limiter
 const helmet = require('helmet'); // https://expressjs.com/ru/advanced/best-practice-security.html
+const { errors } = require('celebrate');
 const { PORT, MONGO_DB } = require('./utils/config');
 const { login, createUser } = require('./controllers/users');
 const authMiddleware = require('./middlewares/auth');
@@ -38,6 +39,7 @@ app.use('*', (req, res) => {
   res.status(404).send({ message: 'Указанный путь не найден.' });
 });
 
+app.use(errors());
 app.use(responseHandler);
 
 app.listen(PORT, () => console.log('Server started on port:', PORT));
