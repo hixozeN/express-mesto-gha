@@ -14,7 +14,22 @@ const getAllUsers = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-const getUser = (req, res, next) => {
+const getUser = (req, res) => {
+  User.findById(req.params.userId)
+    .orFail(new Error('NotValidId'))
+    .then((userData) => res.send({ data: userData }))
+    .catch((err) => {
+      if (err instanceof CastError) {
+        res.status(400).send({ message: `Введен некорректный ID (${req.params.userId}), который невозможно обработать.` });
+      } else if (err.message === 'NotValidId') {
+        res.status(404).send({ message: 'Пользователь с таким ID не найден.' });
+      } else {
+        res.status(500).send({ message: `Что-то пошло не так: ${err}` });
+      }
+    });
+};
+
+const getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail(new Error('NotValidId'))
     .then((userData) => res.send({ data: userData }))
@@ -96,5 +111,5 @@ const login = (req, res, next) => {
 };
 
 module.exports = {
-  getAllUsers, getUser, createUser, updateUser, updateAvatar, login,
+  getAllUsers, getUser, getCurrentUser, createUser, updateUser, updateAvatar, login,
 };
