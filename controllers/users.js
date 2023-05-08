@@ -15,17 +15,15 @@ const getAllUsers = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-const getUser = (req, res) => {
+const getUser = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail(new Error('NotValidId'))
     .then((userData) => res.send({ data: userData }))
     .catch((err) => {
-      if (err instanceof CastError) {
-        res.status(400).send({ message: `Введен некорректный ID (${req.params.userId}), который невозможно обработать.` });
-      } else if (err.message === 'NotValidId') {
-        res.status(404).send({ message: 'Пользователь с таким ID не найден.' });
+      if (err.message === 'NotValidId') {
+        next(new NotFound('Пользователь с таким ID не найден.'));
       } else {
-        res.status(500).send({ message: `Что-то пошло не так: ${err}` });
+        next(err);
       }
     });
 };
@@ -35,9 +33,7 @@ const getCurrentUser = (req, res, next) => {
     .orFail(new Error('NotValidId'))
     .then((userData) => res.send({ data: userData }))
     .catch((err) => {
-      if (err instanceof CastError) {
-        next(new BadRequest('Введен некорректный ID, который невозможно обработать.'));
-      } else if (err.message === 'NotValidId') {
+      if (err.message === 'NotValidId') {
         next(new NotFound('Пользователь с таким ID не найден.'));
       } else {
         next(err);
@@ -49,8 +45,6 @@ const createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-
-  if (!password) return next(new BadRequest('Поле "password" должно быть заполнено.'));
 
   return bcrypt.hash(password, 10)
     .then((hash) => User.create({
