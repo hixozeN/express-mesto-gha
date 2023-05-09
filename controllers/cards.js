@@ -32,7 +32,7 @@ const deleteCard = (req, res, next) => {
     .then((foundCard) => {
       if (!foundCard.owner.equals(req.user._id)) return next(new Forbidden('Эта карточка принадлежит другому пользователю.'));
 
-      return Card.deleteOne()
+      return Card.deleteOne(foundCard)
         .then(() => res.send({ message: 'Карточка успешно удалена.' }));
     })
     .catch((err) => next(err));
