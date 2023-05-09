@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const { ValidationError, CastError } = mongoose.Error;
+const { ValidationError } = mongoose.Error;
 const Card = require('../models/cardSchema');
 const BadRequest = require('../utils/responsesWithError/BadRequest');
 const NotFound = require('../utils/responsesWithError/NotFound');
@@ -28,22 +28,14 @@ const createCard = (req, res, next) => {
 
 const deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
-    .orFail(new Error('NotValidId'))
+    .orFail(new NotFound('Передан несуществующий ID карточки.'))
     .then((foundCard) => {
       if (!foundCard.owner.equals(req.user._id)) return next(new Forbidden('Эта карточка принадлежит другому пользователю.'));
 
-      return Card.findByIdAndRemove(req.params.cardId)
-        .then((card) => res.send({ data: card }));
+      return Card.deleteOne()
+        .then(() => res.send({ message: 'Карточка успешно удалена.' }));
     })
-    .catch((err) => {
-      if (err instanceof CastError) {
-        next(new BadRequest('Введен некорректный ID, который невозможно обработать.'));
-      } else if (err.message === 'NotValidId') {
-        next(new NotFound('Передан несуществующий ID карточки.'));
-      } else {
-        next(err);
-      }
-    });
+    .catch((err) => next(err));
 };
 
 const likeCard = (req, res, next) => {
@@ -52,17 +44,9 @@ const likeCard = (req, res, next) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(new Error('NotValidId'))
+    .orFail(new NotFound('Передан несуществующий ID карточки.'))
     .then((card) => res.send({ data: card }))
-    .catch((err) => {
-      if (err instanceof CastError) {
-        next(new BadRequest('Переданы некорректные данные при лайке.'));
-      } else if (err.message === 'NotValidId') {
-        next(new NotFound('Передан несуществующий ID карточки.'));
-      } else {
-        next(err);
-      }
-    });
+    .catch((err) => next(err));
 };
 
 const dislikeCard = (req, res, next) => {
@@ -71,17 +55,9 @@ const dislikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(new Error('NotValidId'))
+    .orFail(new NotFound('Передан несуществующий ID карточки.'))
     .then((card) => res.send({ data: card }))
-    .catch((err) => {
-      if (err instanceof CastError) {
-        next(new BadRequest('Переданы некорректные данные при дизлайке.'));
-      } else if (err.message === 'NotValidId') {
-        next(new NotFound('Передан несуществующий ID карточки.'));
-      } else {
-        next(err);
-      }
-    });
+    .catch((err) => next(err));
 };
 
 module.exports = {

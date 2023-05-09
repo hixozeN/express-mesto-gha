@@ -10,6 +10,7 @@ const { login, createUser } = require('./controllers/users');
 const authMiddleware = require('./middlewares/auth');
 const responseHandler = require('./middlewares/responseHandler');
 const { validateLogin, validateRegistration } = require('./utils/validationConfig');
+const NotFound = require('./utils/responsesWithError/NotFound');
 
 mongoose.set('strictQuery', false);
 mongoose.connect(MONGO_DB, {
@@ -36,8 +37,8 @@ app.use('/cards', authMiddleware, require('./routes/cardRouter'));
 app.use('/signin', validateLogin, login);
 app.use('/signup', validateRegistration, createUser);
 
-app.use('*', (req, res) => {
-  res.status(404).send({ message: 'Указанный путь не найден.' });
+app.use('*', (req, res, next) => {
+  next(new NotFound('Указанный путь не найден.'));
 });
 
 app.use(errors());

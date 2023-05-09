@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { SECRET } = require('../utils/config');
 
-const { ValidationError, CastError } = mongoose.Error;
+const { ValidationError } = mongoose.Error;
 const User = require('../models/userSchema');
 const BadRequest = require('../utils/responsesWithError/BadRequest');
 const NotFound = require('../utils/responsesWithError/NotFound');
@@ -17,28 +17,16 @@ const getAllUsers = (req, res, next) => {
 
 const getUser = (req, res, next) => {
   User.findById(req.params.userId)
-    .orFail(new Error('NotValidId'))
+    .orFail(new NotFound('Пользователь с таким ID не найден.'))
     .then((userData) => res.send({ data: userData }))
-    .catch((err) => {
-      if (err.message === 'NotValidId') {
-        next(new NotFound('Пользователь с таким ID не найден.'));
-      } else {
-        next(err);
-      }
-    });
+    .catch((err) => next(err));
 };
 
 const getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
-    .orFail(new Error('NotValidId'))
+    .orFail(new NotFound('Пользователь с таким ID не найден.'))
     .then((userData) => res.send({ data: userData }))
-    .catch((err) => {
-      if (err.message === 'NotValidId') {
-        next(new NotFound('Пользователь с таким ID не найден.'));
-      } else {
-        next(err);
-      }
-    });
+    .catch((err) => next(err));
 };
 
 const createUser = (req, res, next) => {
@@ -68,13 +56,11 @@ const updateUser = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .orFail(new Error('NotValidId'))
+    .orFail(new NotFound('Пользователь с таким ID не найден.'))
     .then((updatedUserData) => res.send({ data: updatedUserData }))
     .catch((err) => {
-      if (err instanceof ValidationError || err instanceof CastError) {
+      if (err instanceof ValidationError) {
         next(new BadRequest(err.message));
-      } else if (err.message === 'NotValidId') {
-        next(new NotFound('Пользователь с таким ID не найден.'));
       } else {
         next(err);
       }
@@ -85,13 +71,11 @@ const updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .orFail(new Error('NotValidId'))
+    .orFail(new NotFound('Некорректный ID пользователя.'))
     .then((newAvatar) => res.send({ data: newAvatar }))
     .catch((err) => {
-      if (err instanceof ValidationError || err instanceof CastError) {
+      if (err instanceof ValidationError) {
         next(new BadRequest(err.message));
-      } else if (err.message === 'NotValidId') {
-        next(new NotFound('Некорректный ID пользователя.'));
       } else {
         next(err);
       }

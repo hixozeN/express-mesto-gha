@@ -1,4 +1,5 @@
 const { Schema, model } = require('mongoose');
+const validator = require('validator');
 
 const cardSchema = new Schema(
   {
@@ -10,6 +11,10 @@ const cardSchema = new Schema(
     },
     link: {
       type: String,
+      validate: {
+        validator: (v) => validator.isURL(v),
+        message: 'Некорректный URL',
+      },
       required: true,
     },
     owner: {
@@ -26,7 +31,7 @@ const cardSchema = new Schema(
     ],
     createdAt: {
       type: Date,
-      default: Date.now(),
+      default: Date.now,
     },
   },
   {
