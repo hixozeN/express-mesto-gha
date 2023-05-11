@@ -1,16 +1,17 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
 
 const app = express();
 const rateLimit = require('express-rate-limit'); // limiter
 const helmet = require('helmet'); // https://expressjs.com/ru/advanced/best-practice-security.html
 const { errors } = require('celebrate');
 const { PORT, MONGO_DB } = require('./utils/config');
-const { login, createUser } = require('./controllers/users');
-const authMiddleware = require('./middlewares/auth');
 const responseHandler = require('./middlewares/responseHandler');
-const { validateLogin, validateRegistration } = require('./utils/validationConfig');
-const NotFound = require('./utils/responsesWithError/NotFound');
+const router = require('./routes');
+
+app.use(cors());
 
 mongoose.set('strictQuery', false);
 mongoose.connect(MONGO_DB, {
@@ -29,19 +30,11 @@ const limiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 app.use(limiter); // AntiDOS на все реквесты
-app.use(helmet());
+app.use(helmet()); // защита
 
-app.use('/users', authMiddleware, require('./routes/userRouter'));
-app.use('/cards', authMiddleware, require('./routes/cardRouter'));
+app.use(router); // роутинг апи
 
-app.use('/signin', validateLogin, login);
-app.use('/signup', validateRegistration, createUser);
-
-app.use('*', (req, res, next) => {
-  next(new NotFound('Указанный путь не найден.'));
-});
-
-app.use(errors());
-app.use(responseHandler);
+app.use(errors()); // ошибки валидации celebrate
+app.use(responseHandler); // централизованный обработчик ошибок
 
 app.listen(PORT, () => console.log('Server started on port:', PORT));
